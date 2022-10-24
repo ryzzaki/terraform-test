@@ -20,6 +20,8 @@ Terraform should provide the following for most full stack apps:
 3. S3
 4. Route53
 
+Horizontal scaling will be achieved by scaling up the number of instances with a load balancer.
+
 `note`: might add Redis for caching things like JWT tokens
 
 ## Usage
@@ -49,3 +51,7 @@ terraform destroy
 ```
 
 The `ami` used in `main.tf` is an ID to an `amd64` variant of Ubuntu 20.04 LTS in `eu-west-1`.
+
+## TF State Management
+
+State is currently handled (was migrated from local backend) in Terraform Cloud with local execution enabled due to shared credentials in `~/.aws`. This will be soon migrated yet again to remote execution using Github Actions.
