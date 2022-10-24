@@ -28,6 +28,10 @@ resource "aws_instance" "terraform-test-1" {
                     echo "Server 1" > index.html
                     python3 -m http.server 8080 &
                     EOF
+
+  tags = {
+    Name = "tf-test-1"
+  }
 }
 
 resource "aws_instance" "terraform-test-2" {
@@ -39,6 +43,10 @@ resource "aws_instance" "terraform-test-2" {
                     echo "Server 2" > index.html
                     python3 -m http.server 8080 &
                     EOF
+
+  tags = {
+    Name = "tf-test-2"
+  }
 }
 
 resource "aws_s3_bucket" "bucket" {
