@@ -52,6 +52,22 @@ terraform destroy
 
 The `ami` used in `main.tf` is an ID to an `amd64` variant of Ubuntu 20.04 LTS in `eu-west-1`.
 
+## Usage with Sensitive Vars
+
+Sensitive variables such as `db-pass` can be passed down from the CLI command instead of being defined in `terraform.tfvars`:
+
+```bash
+terraform plan -var="db-pass=this_is_a_long_pass"
+```
+
+This will result in the output propagating a censored field like so:
+
+```
++ password                              = (sensitive value)
+```
+
+`note:` we could alternatively use `TF_VAR_env_var` env files to hide the secrets in CI/CD pipelines
+
 ## TF State Management
 
 State is currently handled (was migrated from local backend) in Terraform Cloud with local execution enabled due to shared credentials in `~/.aws`. This will be soon migrated yet again to remote execution using Github Actions.

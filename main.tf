@@ -16,12 +16,12 @@ terraform {
 }
 
 provider "aws" {
-  region = "eu-west-1"
+  region = var.region
 }
 
 resource "aws_instance" "terraform-test-1" {
-  ami             = "ami-04e2e94de097d3986" # Ubuntu 20.04 LTS 2022
-  instance_type   = "t2.micro"
+  ami             = var.ami # Ubuntu 20.04 LTS 2022
+  instance_type   = var.ec2-instance-type
   security_groups = [aws_security_group.terraform-instances.name]
   user_data       = <<-EOF
                     #!/bin/bash
@@ -35,8 +35,8 @@ resource "aws_instance" "terraform-test-1" {
 }
 
 resource "aws_instance" "terraform-test-2" {
-  ami             = "ami-04e2e94de097d3986" # Ubuntu 20.04 LTS 2022
-  instance_type   = "t2.micro"
+  ami             = var.ami # Ubuntu 20.04 LTS 2022
+  instance_type   = var.ec2-instance-type
   security_groups = [aws_security_group.terraform-instances.name]
   user_data       = <<-EOF
                     #!/bin/bash
@@ -50,7 +50,7 @@ resource "aws_instance" "terraform-test-2" {
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket        = "app-data-assets"
+  bucket        = var.bucket-name
   force_destroy = true
 }
 
@@ -85,7 +85,7 @@ data "aws_subnets" "default_subnet" {
 
 
 resource "aws_security_group" "terraform-instances" {
-  name = "terraform-instances-security-group"
+  name = var.security-group-instances
 }
 
 resource "aws_security_group_rule" "allow_http_inbound" {
@@ -115,7 +115,7 @@ resource "aws_lb_listener" "http" {
 }
 
 resource "aws_lb_target_group" "terraform-instances" {
-  name     = "terraform-target-group"
+  name     = var.lb-target-group
   port     = 8080
   protocol = "HTTP"
   vpc_id   = data.aws_vpc.default_vpc.id
@@ -159,13 +159,13 @@ resource "aws_lb_listener_rule" "instances" {
   }
 }
 
-resource "aws_security_group" "alb" {
-  name = "alb-security_group"
+resource "aws_security_group" "application-load-balancer" {
+  name = var.security-group-alb
 }
 
 resource "aws_security_group_rule" "allow_alb_http_inbound" {
   type              = "ingress"
-  security_group_id = aws_security_group.alb.id
+  security_group_id = aws_security_group.application-load-balancer.id
 
   from_port   = 80
   to_port     = 80
@@ -175,7 +175,7 @@ resource "aws_security_group_rule" "allow_alb_http_inbound" {
 
 resource "aws_security_group_rule" "allow_alb_all_outbound" {
   type              = "egress"
-  security_group_id = aws_security_group.alb.id
+  security_group_id = aws_security_group.application-load-balancer.id
 
   from_port   = 0
   to_port     = 0
@@ -184,19 +184,19 @@ resource "aws_security_group_rule" "allow_alb_all_outbound" {
 }
 
 resource "aws_lb" "load_balancer" {
-  name               = "web-app-lb"
+  name               = var.lb-name
   load_balancer_type = "application"
   subnets            = data.aws_subnets.default_subnet.ids
-  security_groups    = [aws_security_group.alb.id]
+  security_groups    = [aws_security_group.application-load-balancer.id]
 }
 
 resource "aws_route53_zone" "primary" {
-  name = "afterlight.io"
+  name = var.domain-name
 }
 
 resource "aws_route53_record" "root" {
   zone_id = aws_route53_zone.primary.zone_id
-  name    = "afterlight.io"
+  name    = var.domain-name
   type    = "A"
 
   alias {
@@ -213,8 +213,8 @@ resource "aws_db_instance" "afterlight_db" {
   engine                     = "postgres"
   engine_version             = "12"
   instance_class             = "db.t2.micro"
-  db_name                    = "afterlight_prod"
-  username                   = "root"
-  password                   = "this_needs_to_be_at_least_8_characters_long"
+  db_name                    = var.db-name
+  username                   = var.db-user
+  password                   = var.db-pass
   skip_final_snapshot        = true
 }

@@ -1,0 +1,4 @@
+bucket-name = "value"
+domain-name = "value.com"
+db-name     = "value"
+db-user     = "value"
