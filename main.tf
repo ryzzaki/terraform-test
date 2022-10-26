@@ -19,18 +19,21 @@ provider "aws" {
   region = var.region
 }
 
-resource "aws_instance" "terraform-test-1" {
+resource "aws_instance" "terraform-test-server" {
+  # meta argument specifying the number of instances to spin up
+  count = var.ec2-instance-count
+
   ami             = var.ami # Ubuntu 20.04 LTS 2022
   instance_type   = var.ec2-instance-type
   security_groups = [aws_security_group.terraform-instances.name]
   user_data       = <<-EOF
                     #!/bin/bash
-                    echo "Server 1" > index.html
+                    echo "Server ${count.index}" > index.html
                     python3 -m http.server 8080 &
                     EOF
 
   tags = {
-    Name = "tf-test-1"
+    Name = "tf-test-${count.index}"
   }
 }
 
@@ -131,15 +134,11 @@ resource "aws_lb_target_group" "terraform-instances" {
   }
 }
 
-resource "aws_lb_target_group_attachment" "terraform-test-1" {
-  target_group_arn = aws_lb_target_group.terraform-instances.arn
-  target_id        = aws_instance.terraform-test-1.id
-  port             = 8080
-}
+resource "aws_lb_target_group_attachment" "terraform-lb-server-attachment" {
+  count = var.ec2-instance-count
 
-resource "aws_lb_target_group_attachment" "terraform-test-2" {
   target_group_arn = aws_lb_target_group.terraform-instances.arn
-  target_id        = aws_instance.terraform-test-2.id
+  target_id        = aws_instance.terraform-test-server[count.index].id
   port             = 8080
 }
 

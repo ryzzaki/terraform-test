@@ -20,6 +20,12 @@ variable "ec2-instance-type" {
   default     = "t2.micro"
 }
 
+variable "ec2-instance-count" {
+  description = "Number of EC2s to spin up"
+  type        = number
+  default     = 1
+}
+
 # Load Balancer Related
 
 variable "lb-name" {

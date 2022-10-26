@@ -1,9 +1,6 @@
-output "terraform-test-1-ip" {
-  value = aws_instance.terraform-test-1.public_ip
-}
-
-output "terraform-test-2-ip" {
-  value = aws_instance.terraform-test-2.public_ip
+output "terraform-server-ip" {
+  // this is using the splat command to destruct the count meta arg
+  value = [aws_instance.terraform-test-server.*.public_ip]
 }
 
 output "db-instance-ip" {
