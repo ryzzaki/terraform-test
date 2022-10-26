@@ -35,20 +35,17 @@ resource "aws_instance" "terraform-test-server" {
   tags = {
     Name = "tf-test-${count.index}"
   }
-}
 
-resource "aws_instance" "terraform-test-2" {
-  ami             = var.ami # Ubuntu 20.04 LTS 2022
-  instance_type   = var.ec2-instance-type
-  security_groups = [aws_security_group.terraform-instances.name]
-  user_data       = <<-EOF
-                    #!/bin/bash
-                    echo "Server 2" > index.html
-                    python3 -m http.server 8080 &
-                    EOF
+  lifecycle {
+    # create a new server before destroying this one to avoid downtime
+    create_before_destroy = true
+    # rejects any plan which would destroyt his resource 
+    # prevent_destroy = true
 
-  tags = {
-    Name = "tf-test-2"
+    # ignore changes modified outside of terraform
+    ignore_changes = [
+      tags
+    ]
   }
 }
 
